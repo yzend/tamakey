@@ -36,6 +36,7 @@ const MAIN_MENUS: MenuId[] = [
   'online',
 ]
 
+// 宠物处于蛋、死亡或活动锁定时，绝大多数照护交互都不可执行。
 const isPetCareAvailable = (state: GameState): boolean =>
   state.pet.stage !== 'egg' &&
   state.pet.stage !== 'dead' &&
@@ -44,7 +45,9 @@ const isPetCareAvailable = (state: GameState): boolean =>
 const canCareForAwakePet = (state: GameState): boolean =>
   isPetCareAvailable(state) && state.pet.sleepState === 'awake'
 
+// 交互注册表是领域命令的分发表：canApply 负责门禁，apply 负责不可变状态更新。
 export const interactionRegistry: InteractionRegistry = {
+  // 基础喂养和玩耍会直接改变需求值，并顺带推进日常任务。
   feedMeal: {
     canApply: (state) =>
       canCareForAwakePet(state) &&
@@ -126,6 +129,7 @@ export const interactionRegistry: InteractionRegistry = {
       state.pet.stage !== 'egg' && state.pet.stage !== 'dead',
     apply: (state, context) => cleanState(state, context.now, 'cleanHome'),
   },
+  // 清洁类操作同时清空排泄物和脏污压力，防止刚清理后立刻触发生病。
   bath: {
     canApply: canCareForAwakePet,
     apply: (state, context) =>
@@ -187,6 +191,7 @@ export const interactionRegistry: InteractionRegistry = {
       state.pet.sickness !== 'none' &&
       state.resources.medicine > 0,
     apply: (state, context) => {
+      // 重症先降为轻症，轻症才完全恢复，保留一次治疗的节奏感。
       const sickness = state.pet.sickness === 'severe' ? 'mild' : 'none'
       const events: GameEvent[] =
         sickness === 'none' ? [{ type: 'recovered', at: context.now }] : []
@@ -349,6 +354,7 @@ export const interactionRegistry: InteractionRegistry = {
       state.pet.stage !== 'elder' &&
       state.pet.ageSeconds >= EVOLUTION_THRESHOLDS_SECONDS.baby,
     apply: (state, context) => {
+      // 生日是手动成长入口，不走年龄阈值，但仍发出 evolved 事件。
       const next = nextManualStage(state.pet.stage)
       const events: GameEvent[] = [
         { type: 'evolved', from: state.pet.stage, to: next, at: context.now },
@@ -414,6 +420,7 @@ export const interactionRegistry: InteractionRegistry = {
       events: [{ type: 'newEggCreated', at: context.now }],
     }),
   },
+  // 菜单交互只更新 UI 栈，不产生领域副作用。
   openMenu: {
     canApply: (state) => !state.world.activity,
     apply: (state, context) => ({
@@ -455,6 +462,7 @@ export const interactionRegistry: InteractionRegistry = {
   endActivity: {
     canApply: (state) => Boolean(state.world.activity),
     apply: (state, context) => {
+      // 手动结束活动按当前活动 id 发结束事件，缺省值只作为异常兜底。
       const activityId = state.world.activity?.id ?? 'garden'
       return {
         state: {
@@ -482,6 +490,7 @@ export const interactionRegistry: InteractionRegistry = {
     apply: (state, context) =>
       claimMission(state, context.command.targetId, context.now),
   },
+  // 花园操作通过 plotId 定位地块，事件用于刷新渲染和提示。
   plant: {
     canApply: (state, command) =>
       canCareForAwakePet(state) &&
@@ -557,6 +566,7 @@ export const interactionRegistry: InteractionRegistry = {
         context.now
       ),
   },
+  // 通用商店购买从 catalog 中找价格和背包分类，兼容本地模组物品。
   buyShopItem: {
     canApply: (state, command) => {
       const item = findShopItem(state, command.targetId)
@@ -624,6 +634,7 @@ export const interactionRegistry: InteractionRegistry = {
     apply: (state, context) =>
       craftRecipe(state, context.command.targetId, context.now),
   },
+  // 家具与饰品只改变装饰状态，不消耗背包数量；购买阶段已处理资源。
   placeFurniture: {
     canApply: (state, command) =>
       getInventoryQuantity(state.resources.furniture, command.targetId ?? '') >
@@ -725,6 +736,7 @@ export const interactionRegistry: InteractionRegistry = {
       events: [],
     }),
   },
+  // 社交和在线功能都走本地 mock API，便于离线环境下复现流程。
   addFriend: {
     canApply: (_state, command) => Boolean(getCommandText(command)),
     apply: (state, context) =>
@@ -850,6 +862,7 @@ export const interactionRegistry: InteractionRegistry = {
       events: [],
     }),
   },
+  // 导入存档在应用层完成真正解析；这里仅把拒绝原因转成事件和提示。
   importSave: {
     canApply: () => true,
     apply: (state, context) => ({
@@ -877,6 +890,7 @@ export const interactionRegistry: InteractionRegistry = {
 }
 
 function cleanState(state: GameState, now: number, missionId: MissionId) {
+  // 清洁是多个交互的共享效果，所以集中在这里维护数值和任务进度。
   return withMissionProgress(
     applyMood({
       ...state,
@@ -913,6 +927,7 @@ function startActivity(
   now: number,
   detail?: string
 ): InteractionResult {
+  // 活动时长优先使用目录定义，缺省值保证旧存档或模组缺字段时仍能运行。
   const definition = state.catalogs.activities.find(
     (activity) => activity.id === activityId
   )
@@ -948,6 +963,7 @@ function withMissionProgress(
   missionIds: MissionId[],
   now: number
 ): InteractionResult {
+  // 与 lifecycle 中的同名逻辑保持一致，交互层在操作结算时即时推进任务。
   const input =
     'events' in resultOrState
       ? resultOrState
@@ -988,6 +1004,7 @@ function claimMission(
   missionId: string | undefined,
   now: number
 ) {
+  // 只有满足目标且未领取的任务才会发奖励，未命中时保持 rewardCoins 为 0。
   let rewardCoins = 0
   const list = state.missions.list.map((mission) => {
     if (
@@ -1034,6 +1051,7 @@ function claimMission(
 }
 
 function plantSeed(state: GameState, plotId: string | undefined, now: number) {
+  // plotId 缺失时使用第一个地块作为安全兜底，避免 UI 事件丢目标导致崩溃。
   const safePlotId = plotId ?? 'plot-1'
   const plots = state.garden.plots.map((plot) =>
     plot.id === safePlotId
@@ -1078,6 +1096,7 @@ function harvestPlot(
   plotId: string | undefined,
   now: number
 ): InteractionResult {
+  // 收获会同时写入花园收获篮和普通 items，兼容烹饪与背包展示两条路径。
   const safePlotId = plotId ?? 'plot-1'
   const plots = state.garden.plots.map((plot) =>
     plot.id === safePlotId
@@ -1125,6 +1144,7 @@ function updateInventory<
   },
   K extends keyof T,
 >(resources: T, bucket: K, itemId: string, delta: number): T {
+  // 背包桶结构不变，只替换目标桶，保证 React/Zustand 能正确感知更新。
   return {
     ...resources,
     [bucket]: upsertInventory(
@@ -1140,6 +1160,7 @@ function upsertInventory(
   itemId: string,
   delta: number
 ) {
+  // 数量降到 0 时直接移除条目，避免 UI 处理空库存项。
   const next = items
     .map((item) =>
       item.id === itemId
@@ -1163,6 +1184,7 @@ function openMenuStack(
   current: MenuId[],
   targetId: string | undefined
 ): MenuId[] {
+  // 打开子菜单时去重后压栈，重复点击同一菜单不会产生重复层级。
   const menuId = normalizeMenuId(targetId)
   if (menuId === 'main') return ['main']
   if (current.length === 0) return ['main', menuId]
@@ -1178,6 +1200,7 @@ function normalizeMenuId(targetId: string | undefined): MenuId {
 }
 
 function normalizeActivityId(targetId: string | undefined): ActivityId {
+  // 未识别活动回落到 garden，保持旧按钮或外部命令的兼容性。
   if (
     targetId === 'shop' ||
     targetId === 'mall' ||
@@ -1253,6 +1276,7 @@ function finishWant(
   kind: NonNullable<GameState['pet']['want']>['kind'],
   now: number
 ) {
+  // 只有当前想要类型完全匹配且尚未完成时，才发放完成奖励。
   if (!pet.want || pet.want.kind !== kind || pet.want.completedAt !== null) {
     return pet
   }
@@ -1277,6 +1301,7 @@ function buyCatalogItem(
   itemId: string | undefined,
   now: number
 ): InteractionResult {
+  // 购买失败保持原状态；canApply 正常会提前拦截，这里作为防御式兜底。
   const item = findShopItem(state, itemId)
   if (!item) return { state, events: [] }
 
@@ -1313,6 +1338,7 @@ function itemKindToBucket(
 }
 
 function canCraft(state: GameState, recipeId: string | undefined) {
+  // 合成消耗可来自普通物品、材料或花园收获，数量合并后判断是否足够。
   const recipe = state.catalogs.craft.find((item) => item.id === recipeId)
   if (!recipe) return false
   return recipe.cost.every(
@@ -1328,6 +1354,7 @@ function craftRecipe(
   const recipe = state.catalogs.craft.find((item) => item.id === recipeId)
   if (!recipe) return { state, events: [] }
 
+  // 扣除材料时按 items -> materials -> harvests 的顺序寻找来源。
   let resources = state.resources
   let garden = state.garden
   for (const cost of recipe.cost) {
@@ -1387,6 +1414,7 @@ function placeFurniture(
   itemId: string | undefined,
   now: number
 ): InteractionResult {
+  // 摆放位置按已有家具数量错开，避免多个家具完全重叠。
   const safeItemId = itemId ?? 'round-chair'
   const placement = {
     id: `placement-${now}`,
@@ -1414,6 +1442,7 @@ function removeFurniture(
   placementId: string | undefined,
   now: number
 ): InteractionResult {
+  // placements 是主数据，旧的 furniture 数组同步删除同索引项以兼容旧渲染。
   const removed = state.world.furniturePlacements.find(
     (placement) => placement.id === placementId
   )
@@ -1447,6 +1476,7 @@ function equipAccessory(
   itemId: string | undefined,
   now: number
 ): InteractionResult {
+  // 目前用 itemId 简单推断槽位；同槽位新饰品会替换旧饰品。
   const safeItemId = itemId ?? 'star-pin'
   const slot = safeItemId.includes('pin') ? 'head' : 'body'
   return {
@@ -1491,6 +1521,7 @@ function finishMinigame(
   result: string | undefined,
   now: number
 ): InteractionResult {
+  // 小游戏只区分胜负奖励，具体玩法结果由调用方转换成 lose 或非 lose。
   const won = result !== 'lose'
   const reward = won ? 12 : 4
   return withMissionProgress(
@@ -1538,6 +1569,7 @@ function addFriend(
   code: string | undefined,
   now: number
 ): InteractionResult {
+  // 好友码会先清洗再交给 mock API，保证社交列表内容可安全展示。
   const safeCode = sanitizeLabel(code ?? `LOCAL-${now}`)
   const friend = mockOnlineApi.addFriendByCode(state, safeCode, now)
   return withMissionProgress(
@@ -1559,6 +1591,7 @@ function postSocial(
   body: string,
   now: number
 ): InteractionResult {
+  // 本地动态只保留最近 20 条，避免存档无限增长。
   const post = mockOnlineApi.createSocialPost(state, sanitizeLabel(body), now)
   return withMissionProgress(
     {
@@ -1588,6 +1621,7 @@ function interactOnlinePet(
   now: number
 ): InteractionResult {
   if (!petId) return { state, events: [] }
+  // 在线互动同样限制历史长度，便于 UI 固定渲染最近记录。
   const interaction = mockOnlineApi.createInteraction(petId, 'wave', now)
   return {
     state: {
@@ -1610,6 +1644,7 @@ function importLocalMod(
   text: string,
   now: number
 ): InteractionResult {
+  // 模组导入只合并 catalog，不直接修改玩家库存或当前宠物状态。
   const result = parseLocalModDefinition(text)
   if (result.status === 'rejected') {
     return {
@@ -1624,6 +1659,7 @@ function importLocalMod(
   const shopById = new Map(
     state.catalogs.shop.map((item) => [item.id, item] as const)
   )
+  // 同 id 条目以最后导入的模组为准，达到“覆盖目录定义”的效果。
   for (const item of result.mod.shopItems) {
     shopById.set(item.id, item)
   }
@@ -1661,6 +1697,7 @@ function toggleSetting(
   command: GameCommand,
   now: number
 ): InteractionResult {
+  // 设置命令兼容 payload 和旧的 targetId/value 两种调用形态。
   const key =
     command.payload?.kind === 'settings'
       ? command.payload.key
@@ -1695,6 +1732,7 @@ function toggleFeature(
   command: GameCommand,
   now: number
 ): InteractionResult {
+  // 功能开关也兼容 payload 和旧命令，便于 UI 逐步迁移。
   const key =
     command.payload?.kind === 'feature'
       ? command.payload.key
@@ -1721,6 +1759,7 @@ function toggleFeature(
 }
 
 function sanitizeLabel(value: string) {
+  // 用户可输入文本只保留基础字符，并限制长度以保护 toast 和存档。
   return (
     value
       .trim()
@@ -1730,6 +1769,7 @@ function sanitizeLabel(value: string) {
 }
 
 function getCommandText(command: GameCommand) {
+  // 不同 payload 的文本字段不同，统一在这里取出给社交、资料和导入逻辑使用。
   if (command.payload?.kind === 'social') {
     return command.payload.body ?? command.payload.friendCode
   }
@@ -1748,6 +1788,7 @@ function nextManualStage(stage: PetStage): PetStage {
 }
 
 function createNewEggFromState(state: GameState, now: number): GameState {
+  // 新蛋保留玩家资源、目录和设置，但重置宠物、房间压力和 UI 栈。
   return {
     ...state,
     pet: {

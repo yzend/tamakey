@@ -1,3 +1,4 @@
+// 领域规则的统一出口：应用层只依赖这里，不直接绑定具体规则文件布局。
 export {
   applyActivityCompletion,
   applyCarePressure,

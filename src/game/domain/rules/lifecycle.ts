@@ -39,6 +39,7 @@ export function incrementAge(
   state: GameState,
   deltaSeconds: number
 ): GameState {
+  // 死亡状态冻结年龄，避免复活或新蛋逻辑受到旧生命周期推进影响。
   if (state.pet.stage === 'dead') return state
 
   return {
@@ -57,6 +58,7 @@ export function applyNaturalDecay(
   if (state.pet.stage === 'egg' || state.pet.stage === 'dead') return state
 
   const hours = deltaSeconds / 3600
+  // 寄养和度假只保留轻微消耗，活动中也降低需求变化，避免短活动惩罚过重。
   const protectionMultiplier =
     state.pet.onVacation || state.pet.atParents ? 0.15 : 1
   const activityMultiplier = state.world.activity ? 0.35 : 1
@@ -95,6 +97,7 @@ export function applySleep(state: GameState, deltaSeconds: number): GameState {
   if (state.pet.stage === 'egg' || state.pet.stage === 'dead') return state
 
   const hours = deltaSeconds / 3600
+  // 睡眠只改变体力；饥饿、清洁等仍由自然衰减统一处理。
   const energyDelta =
     state.pet.sleepState === 'sleeping'
       ? SLEEPING_ENERGY_GAIN_PER_HOUR * hours
@@ -117,6 +120,7 @@ export function applyPoopGeneration(
 ): GameState {
   if (state.pet.stage === 'egg' || state.pet.stage === 'dead') return state
 
+  // 如厕压力满格会立刻生成一次排泄物，消化计时则负责周期性生成。
   const bladderPoop = state.pet.bladder >= 100 ? 1 : 0
   const totalDigestionSeconds = state.world.digestionSeconds + deltaSeconds
   const timedPoop = Math.floor(totalDigestionSeconds / POOP_INTERVAL_SECONDS)
@@ -150,6 +154,7 @@ export function applyCarePressure(
   state: GameState,
   deltaSeconds: number
 ): GameState {
+  // carePressure 是“连续处于坏状态”的计时器，恢复正常后对应计时清零。
   const neglected =
     state.pet.hunger > HUNGRY_THRESHOLD ||
     state.pet.cleanliness < DIRTY_CLEANLINESS_THRESHOLD ||
@@ -184,6 +189,7 @@ export function applySicknessPressure(
   events: GameEvent[],
   now: number
 ): GameState {
+  // 清洁或排泄长期未处理先变轻症，轻症持续未处理再升级为重症。
   if (
     state.pet.sickness === 'none' &&
     state.carePressure.dirtySeconds > MILD_SICKNESS_AFTER_SECONDS
@@ -224,6 +230,7 @@ export function applyHealthPressure(
   const hours = deltaSeconds / 3600
   let healthLoss = 0
 
+  // 健康值来自具体问题扣减，deathSafety 则记录长期忽视导致的死亡缓冲。
   if (state.carePressure.hungrySeconds > HEALTH_LOSS_HUNGER_AFTER_SECONDS) {
     healthLoss += HUNGER_HEALTH_LOSS_PER_HOUR * hours
   }
@@ -262,6 +269,7 @@ export function applyEvolution(
 ): GameState {
   if (state.pet.stage === 'dead') return state
 
+  // MVP 阶段的成长只看年龄阈值；复杂照护分支可通过 catalogs.evolutions 扩展。
   const previous = state.pet.stage
   const next = deriveNextStageForMvp(
     state.pet.ageSeconds,
@@ -297,6 +305,7 @@ export function deriveNextStageForMvp(
   ageSeconds: number,
   fastHatch = false
 ): PetStage {
+  // fastHatch 只影响蛋阶段，方便测试和新手流程快速进入可交互状态。
   const eggThreshold = fastHatch ? 5 : EVOLUTION_THRESHOLDS_SECONDS.egg
   if (ageSeconds < eggThreshold) return 'egg'
   if (ageSeconds < EVOLUTION_THRESHOLDS_SECONDS.baby) return 'baby'
@@ -312,6 +321,7 @@ export function applyDailyMissionReset(
 ): GameState {
   if (now < state.missions.resetAt) return state
 
+  // 日常任务按下一次 resetAt 滚动，重置进度但保留任务定义和奖励配置。
   return {
     ...state,
     missions: {
@@ -334,6 +344,7 @@ export function applyGardenProgress(
 ): GameState {
   let changed = false
   const plots = state.garden.plots.map((plot) => {
+    // 已经设置枯萎时间的作物在过期后保留为 withered，等待玩家清理或覆盖。
     if (plot.cropId && plot.witheredAt !== null && now > plot.witheredAt) {
       changed = true
       events.push({ type: 'gardenUpdated', plotId: plot.id, at: now })
@@ -347,6 +358,7 @@ export function applyGardenProgress(
       return plot
     }
 
+    // 未成熟的作物到达成长时间后进入可收获窗口，并同时计算枯萎时间。
     const readyAt = plot.plantedAt + GARDEN_GROW_SECONDS * 1000
     if (now < readyAt) return plot
 
@@ -371,6 +383,7 @@ export function applyWantAndMisbehavior(
 
   let next = state
   const want = state.pet.want
+  // 想要不存在或过期未完成时，按年龄片段生成下一个目标。
   if (!want || (want.completedAt === null && now > want.expiresAt)) {
     const newWant = createNextWant(state, now)
     next = {
@@ -383,6 +396,7 @@ export function applyWantAndMisbehavior(
     events.push({ type: 'wantUpdated', want: newWant, at: now })
   }
 
+  // 纪律低且长期忽视时触发行为问题，交互层通过 scold 等操作解除。
   if (
     !next.pet.misbehavior.active &&
     next.pet.discipline < 25 &&
@@ -413,6 +427,7 @@ export function applyActivityCompletion(
   const activity = state.world.activity
   if (!activity || now < activity.endsAt) return state
 
+  // 活动结束先统一解锁，再根据活动类型结算奖励或状态变化。
   events.push({ type: 'activityEnded', activityId: activity.id, at: now })
   const completed: GameState = {
     ...state,
@@ -497,6 +512,7 @@ export function applyMood(state: GameState): GameState {
   const pet = state.pet
   let mood: PetMood = 'idle'
 
+  // 心情按优先级派生：睡眠、生病和低体力优先于普通快乐/难过表现。
   if (pet.stage === 'dead') mood = 'idle'
   else if (pet.sleepState === 'sleeping') mood = 'sleeping'
   else if (pet.sickness !== 'none') mood = 'sick'
@@ -519,6 +535,7 @@ function withMissionProgress(
   missionIds: MissionId[],
   now: number
 ): InteractionResult {
+  // 任务进度是幂等上限递增：已领取或已满进度的任务不会继续发事件。
   const input =
     'events' in resultOrState
       ? resultOrState
@@ -555,6 +572,7 @@ function withMissionProgress(
 }
 
 function createNextWant(state: GameState, now: number) {
+  // 使用年龄片段而不是随机数，保证离线推进和测试结果可复现。
   const wantKinds = [
     'food',
     'play',
@@ -625,6 +643,7 @@ export function applyDeath(
   events: GameEvent[],
   now: number
 ): GameState {
+  // health 和 deathSafety 任一仍有余量都不会死亡，给玩家留下补救窗口。
   if (
     state.pet.stage === 'dead' ||
     (state.pet.health > 0 && state.pet.deathSafety > 0)

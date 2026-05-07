@@ -1,19 +1,29 @@
 import type { CraftRecipe, ShopCatalogItem } from '../gameTypes'
 
 export type LocalModDefinition = {
+  // 本地模组 schema 版本，目前只接受 1。
   schemaVersion: 1
+  // 模组展示名称。
   name: string
+  // 模组新增或覆盖的商店商品。
   shopItems: ShopCatalogItem[]
+  // 模组新增或覆盖的合成配方。
   craftRecipes: CraftRecipe[]
 }
 
+// 外部输入先以 unknown 进入沙箱，逐字段校验后才转换为领域类型。
 type LocalModInput = {
+  // 未校验的 schema 版本输入。
   schemaVersion?: unknown
+  // 未校验的模组名称输入。
   name?: unknown
+  // 未校验的商店商品输入。
   shopItems?: unknown
+  // 未校验的合成配方输入。
   craftRecipes?: unknown
 }
 
+// 本地模组限制大小、数量和文本格式，避免把任意内容注入运行时目录。
 const MAX_MOD_BYTES = 24_000
 const MAX_ENTRIES = 16
 const SAFE_ID = /^[a-z][a-z0-9-]{1,40}$/
@@ -34,6 +44,7 @@ const OUTPUT_BUCKETS = new Set<CraftRecipe['outputBucket']>([
   'food',
 ])
 
+// 解析本地模组：只接受白名单字段，并返回可展示给玩家的拒绝原因。
 export function parseLocalModDefinition(
   text: string
 ):
@@ -89,6 +100,7 @@ export function parseLocalModDefinition(
   }
 }
 
+// 商店物品只允许新增安全的 mod-* id，避免覆盖内置物品协议。
 function parseShopItems(
   value: unknown
 ):
@@ -134,6 +146,7 @@ function parseShopItems(
   return { status: 'ok', items }
 }
 
+// 合成配方会同时校验消耗、产出和产出分类，确保导入后可以被规则安全消费。
 function parseCraftRecipes(
   value: unknown
 ):
@@ -211,6 +224,7 @@ function parseCraftRecipes(
   return { status: 'ok', items: recipes }
 }
 
+// 下面的守卫函数把 unknown 输入缩窄为领域层可用的安全值。
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
