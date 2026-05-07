@@ -1,17 +1,23 @@
-type StatMeterTone = 'hunger' | 'happy' | 'clean' | 'sleep' | 'sick'
+import { PixelIcon, type PixelIconName } from './PixelIcon'
+
+export type StatMeterTone = 'hunger' | 'happy' | 'clean' | 'sleep' | 'sick'
 
 type StatMeterProps = {
+  icon: PixelIconName
   label: string
   value: number
   tone: StatMeterTone
 }
 
-export function StatMeter({ label, value, tone }: StatMeterProps) {
+export function StatMeter({ icon, label, value, tone }: StatMeterProps) {
   const safeValue = clampInteger(value, 0, 100)
 
   return (
     <div className={`stat-meter stat-meter--${tone}`}>
-      <span className='stat-meter__label'>{label}</span>
+      <span className='stat-meter__label'>
+        <PixelIcon name={icon} />
+        <span>{label}</span>
+      </span>
       <div
         className='stat-meter__track'
         role='meter'

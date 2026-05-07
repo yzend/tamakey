@@ -15,3 +15,9 @@ ReactDOM.createRoot(rootElement).render(
     <App />
   </StrictMode>
 )
+
+if (import.meta.env.DEV && window.location.search.includes('testkit=1')) {
+  void import('./devtools/testkit/mount').then(({ mountTestKit }) => {
+    mountTestKit()
+  })
+}

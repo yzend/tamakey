@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "pages:dev": "pnpm build && wrangler pages dev dist",
+    "pages:deploy": "pnpm build && wrangler pages deploy dist --project-name=tamakey",
     "lint": "eslint . --ignore-pattern 'dev-dist/**' --ignore-pattern 'dist/**' --ignore-pattern 'test-results/**'",
     "preview": "vite preview",
     "test": "vitest run",
@@ -16,6 +18,7 @@
     "typecheck": "tsc -b --noEmit"
   },
   "dependencies": {
+    "hono": "^4.12.18",
     "pixi.js": "^8.18.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
@@ -23,6 +26,7 @@
     "zustand": "^5.0.13"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260507.1",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.59.1",
     "@types/node": "^25.5.0",
@@ -37,6 +41,7 @@
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.57.2",
     "vite": "^8.0.3",
-    "vitest": "^4.1.5"
+    "vitest": "^4.1.5",
+    "wrangler": "^4.89.1"
   }
 }

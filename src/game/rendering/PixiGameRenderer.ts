@@ -1,3 +1,4 @@
+// 渲染模块：协调房间、对象、宠物、特效和遮罩等 Pixi 图层。
 import { Container, type Application, type Ticker } from 'pixi.js'
 
 import { EffectRenderer } from './EffectRenderer'

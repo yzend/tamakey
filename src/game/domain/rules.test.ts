@@ -47,6 +47,20 @@ describe('core replication rules', () => {
     )
   })
 
+  it('closes a directly opened submenu without showing an empty main menu', () => {
+    const now = Date.UTC(2026, 0, 1)
+    const initial = createInitialGame(now)
+    const opened = applyInteraction(
+      initial,
+      { type: 'openMenu', targetId: 'feeding' },
+      now
+    )
+    const closed = applyInteraction(opened.state, 'closeMenu', now + 1_000)
+
+    expect(opened.state.ui.displayStack).toEqual(['feeding'])
+    expect(closed.state.ui.displayStack).toEqual([])
+  })
+
   it('advances neglect into death and supports new egg', () => {
     const now = Date.UTC(2026, 0, 1)
     const baby = advanceGameTimeByDelta(
@@ -127,6 +141,39 @@ describe('core replication rules', () => {
     expect(school.state.world.activity?.id).toBe('school')
     expect(finished.state.world.activity).toBeNull()
     expect(finished.state.records.schoolLessons).toBe(1)
+  })
+
+  it('shows a toast when an action is blocked by missing resources', () => {
+    const now = Date.UTC(2026, 0, 1)
+    const baby = advanceGameTimeByDelta(
+      {
+        ...createInitialGame(now),
+        settings: { ...createInitialGame(now).settings, fastHatch: true },
+      },
+      6,
+      now + 6_000
+    ).state
+    const withoutSeeds = {
+      ...baby,
+      resources: {
+        ...baby.resources,
+        seeds: [],
+      },
+    }
+
+    const planted = applyInteraction(
+      withoutSeeds,
+      { type: 'plant', targetId: 'plot-1' },
+      now + 7_000
+    )
+
+    expect(planted.events[0]).toMatchObject({
+      type: 'invalidInteraction',
+      reason: '没有种子了，先去商店购买。',
+    })
+    expect(planted.state.ui.lastToast).toBe('没有种子了，先去商店购买。')
+    expect(planted.state.resources.seeds).toHaveLength(0)
+    expect(planted.state.garden.plots[0]?.cropId).toBeNull()
   })
 
   it('handles shop, craft, furniture, accessories, and settings commands', () => {

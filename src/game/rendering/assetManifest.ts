@@ -1,3 +1,4 @@
+// 渲染模块：房间、宠物和特效精灵的资源路径清单。
 export const assetManifest = {
   room: {
     default: '/assets/rooms/default-room.png',

@@ -23,7 +23,7 @@
 | 原 UI 文案                  | 目标原创文案                                                                          | 文案不同                                | 合规             | 必须       | 产品写新文案                     |
 | 原 exact hatch duration     | 目标可配置 hatch duration                                                             | 数值不同                                | 不复制数值       | 可接受     | 保持“短等待后孵化”体验           |
 | Hubchi/social               | 本地 mock adapter，默认 feature flag 关闭                                             | 不接真实后端                            | 合规/隐私        | 可接受     | 后续可替换真实 API               |
-| Mods                        | 本地 JSON mod sandbox，默认 feature flag 关闭                                         | 只接受安全的目标 schema，不执行脚本     | 安全             | 可接受     | 后续扩展审核/资源策略            |
+| Mods                        | 底层保留本地 JSON sandbox，产品 UI 入口已移除                                         | 不作为当前可见产品功能                  | 安全/范围收敛    | 可接受     | 后续如需要再设计平台             |
 | S0-S8 clean-room execution  | 现有 React/TS/Pixi 架构内补齐 v3 状态、菜单、活动、任务、花园、导入导出、PWA 回归入口 | 目录没有大规模迁移到文档示例树          | 降低既有项目风险 | 可接受     | 继续在现有 `src/game` 边界内扩展 |
 | IndexedDB save              | IndexedDB 主存档 + localStorage fallback                                              | 旧 localStorage v1/v2 自动迁移为目标 v3 | 工程升级         | 可接受     | 非法导入拒绝并保留当前状态       |
 
@@ -60,7 +60,7 @@
 | S6    | 已实现 | missions、stats/settings 面板、任务领取、设置内导入导出                                                                                                                  |
 | S7    | 已实现 | activity lock、shop seed purchase、school reward、garden plant/water/harvest、基础 stuff 使用                                                                            |
 | S8    | 已实现 | Vite PWA 使用手动更新提示入口；Playwright 覆盖 manifest/icons、service worker blocked fallback、egg locked、legacy localStorage restore、canvas pixel sampling           |
-| S9    | 已实现 | social/online/Hub 使用本地 mock；mods 使用本地 JSON sandbox；Settings 可切换 mock flags 和主题；不接真实后端                                                             |
+| S9    | 已实现 | social/online/Hub 使用本地 mock；Settings 可切换 mock flags 和主题；mod 平台入口已取消；不接真实后端                                                                     |
 
 ## 7. 当前 evidence
 
@@ -68,7 +68,7 @@
 | ------------------ | -------- | -------------------------------------------------------------------------------------------------------------------------- |
 | Domain 模块化      | verified | `src/game/domain/rules.ts` 为兼容导出；实现拆到 `rules/lifecycle.ts`、`rules/interactions.ts` 和 focused re-export modules |
 | UI 菜单组件        | verified | `src/app/components/MenuPanel.tsx` 承载主菜单/子菜单，`GameScreen.tsx` 保留状态装配                                        |
-| 本地 mod sandbox   | verified | `src/game/domain/mods/modSandbox.ts` 校验 schema、id、label、数量，拒绝 URL/script，Vitest 覆盖导入/拒绝                   |
+| 本地 mod sandbox   | partial  | 底层 `src/game/domain/mods/modSandbox.ts` 保留并有 Vitest 覆盖；产品 UI 入口已取消，当前不作为可见功能验收                 |
 | PWA 手动更新入口   | verified | `GameBootstrap` 监听 waiting service worker，Settings/MenuPanel 显示 `Update Now`                                          |
 | 主题/外壳切换      | verified | Settings 写入 `settings.theme`，`app-shell--classic/mint/contrast` 应用 CSS token                                          |
 | Canvas 视觉抽样    | verified | Playwright 对 WebGL canvas 执行 `readPixels` 非空检查                                                                      |

@@ -1,3 +1,4 @@
+// 渲染模块：绘制房间背景、场景道具和天气视觉效果。
 import { Container, Graphics } from 'pixi.js'
 
 import type { PetViewModel } from './viewModels'

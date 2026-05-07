@@ -1,7 +1,10 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { OnboardingPage } from './AuthFlow'
 import { GameScreen } from './GameScreen'
 import { restoreGame } from '../game/application/restoreGame'
+import { createInitialGame } from '../game/application/createInitialGame'
+import type { GameEvent, GameState } from '../game/domain/gameTypes'
 import { NotificationService } from '../game/notifications/NotificationService'
 import { HybridSaveRepository } from '../game/persistence/HybridSaveRepository'
 import { NotificationCoordinator } from '../game/runtime/NotificationCoordinator'
@@ -13,12 +16,30 @@ import {
   createGameWorkerClient,
   type GameWorkerClient,
 } from '../game/worker/workerClient'
+import type { LocalSession } from './session'
 
 const TICK_INTERVAL_MS = 5_000
 
-export function GameBootstrap() {
+type PendingInitialGame = {
+  state: GameState
+  events: GameEvent[]
+  startupNotice: string | null
+}
+
+type GameBootstrapProps = {
+  session: LocalSession
+  skipOnboarding?: boolean
+}
+
+export function GameBootstrap({
+  session,
+  skipOnboarding = false,
+}: GameBootstrapProps) {
   const notificationServiceRef = useRef<NotificationService | null>(null)
   const workerClientRef = useRef<GameWorkerClient | null>(null)
+  const [needsOnboarding, setNeedsOnboarding] = useState(false)
+  const [pendingInitialGame, setPendingInitialGame] =
+    useState<PendingInitialGame | null>(null)
 
   useEffect(() => {
     const runtimeStore = useRuntimeStore.getState()
@@ -111,14 +132,45 @@ export function GameBootstrap() {
 
     const start = async () => {
       const repository = new HybridSaveRepository()
+      const now = Date.now()
+      const loadResult = pendingInitialGame ? null : await repository.load()
+
+      if (
+        !pendingInitialGame &&
+        loadResult?.status === 'empty' &&
+        !skipOnboarding
+      ) {
+        if (!disposed) setNeedsOnboarding(true)
+        return
+      }
+
+      let restoredState: GameState
+      let restoredEvents: GameEvent[]
+      let startupNotice: string | null
+
+      if (pendingInitialGame) {
+        restoredState = pendingInitialGame.state
+        restoredEvents = pendingInitialGame.events
+        startupNotice = pendingInitialGame.startupNotice
+      } else {
+        const restored = restoreGame(
+          loadResult ?? {
+            status: 'empty',
+            data: null,
+          },
+          now
+        )
+        restoredState = restored.state
+        restoredEvents = restored.events
+        startupNotice = createStartupNotice(restored)
+      }
+
       const saveCoordinator = new SaveCoordinator(repository)
       const notificationService = new NotificationService()
       const notificationCoordinator = new NotificationCoordinator(
         notificationService
       )
       const workerClient = createGameWorkerClient()
-      const now = Date.now()
-      const restored = restoreGame(await repository.load(), now)
 
       if (disposed) {
         saveCoordinator.dispose()
@@ -129,17 +181,18 @@ export function GameBootstrap() {
 
       notificationServiceRef.current = notificationService
       workerClientRef.current = workerClient
+      setNeedsOnboarding(false)
 
       const gameStore = useGameStore.getState()
       const runtimeStore = useRuntimeStore.getState()
 
-      gameStore.setSnapshot(restored.state)
-      gameStore.enqueueEvents(restored.events)
+      gameStore.setSnapshot(restoredState)
+      gameStore.enqueueEvents(restoredEvents)
       runtimeStore.setWorkerClient(workerClient)
       runtimeStore.setWorkerReady(false)
       runtimeStore.setLastWorkerError(null)
       runtimeStore.setNotificationPermission(getNotificationPermission())
-      runtimeStore.setStartupNotice(createStartupNotice(restored))
+      runtimeStore.setStartupNotice(startupNotice)
 
       const unsubscribeWorker = workerClient.subscribe((message) => {
         handleWorkerMessage(message, saveCoordinator, notificationCoordinator)
@@ -147,7 +200,7 @@ export function GameBootstrap() {
 
       workerClient.post({
         type: 'INIT',
-        state: restored.state,
+        state: restoredState,
         now,
       })
 
@@ -220,7 +273,7 @@ export function GameBootstrap() {
       disposed = true
       cleanup?.()
     }
-  }, [])
+  }, [pendingInitialGame, session.caretakerName, skipOnboarding])
 
   const enableNotifications = useCallback(async () => {
     const service = notificationServiceRef.current
@@ -258,6 +311,30 @@ export function GameBootstrap() {
       now: Date.now(),
     })
   }, [])
+
+  const completeOnboarding = useCallback(
+    (petName: string) => {
+      const now = Date.now()
+      setPendingInitialGame({
+        state: createInitialGame(now, {
+          caretakerName: session.caretakerName,
+          petName,
+        }),
+        events: [],
+        startupNotice: '欢迎加入，第一颗蛋已经准备好了。',
+      })
+    },
+    [session.caretakerName]
+  )
+
+  if (needsOnboarding) {
+    return (
+      <OnboardingPage
+        caretakerName={session.caretakerName}
+        onComplete={completeOnboarding}
+      />
+    )
+  }
 
   return (
     <GameScreen

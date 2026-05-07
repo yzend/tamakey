@@ -15,13 +15,21 @@ import type {
   WantState,
 } from '../domain/gameTypes'
 
-export function createInitialGame(now: number): GameState {
+type InitialGameOptions = {
+  caretakerName?: string
+  petName?: string
+}
+
+export function createInitialGame(
+  now: number,
+  options: InitialGameOptions = {}
+): GameState {
   return {
     version: GAME_VERSION,
     schemaVersion: SAVE_SCHEMA_VERSION,
     pet: {
       id: crypto.randomUUID(),
-      name: 'Tamakey',
+      name: sanitizeInitialName(options.petName, 'Tamakey'),
       species: 'starter',
       stage: 'egg',
       mood: 'idle',
@@ -105,7 +113,7 @@ export function createInitialGame(now: number): GameState {
       buffUntil: null,
     },
     profile: {
-      username: '本地照护者',
+      username: sanitizeInitialName(options.caretakerName, '本地照护者'),
       generation: 1,
       achievements: [],
       friendCode: createFriendCode(now),
@@ -166,6 +174,13 @@ export function createInitialGame(now: number): GameState {
     lastTickAt: now,
     lastSavedAt: null,
   }
+}
+
+function sanitizeInitialName(value: string | undefined, fallback: string) {
+  const normalized = value?.replace(/\s+/g, ' ').trim() ?? ''
+  if (!normalized) return fallback
+
+  return normalized.slice(0, 16)
 }
 
 export function createInitialMissions(): MissionState[] {

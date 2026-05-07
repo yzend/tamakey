@@ -1,3 +1,5 @@
+import { PixelIcon } from './PixelIcon'
+
 type NotificationControlProps = {
   enabled: boolean
   permission: NotificationPermission
@@ -19,6 +21,9 @@ export function NotificationControl({
 
   return (
     <section className='notification-control pixel-edge'>
+      <span className='notification-control__icon' aria-hidden='true'>
+        <PixelIcon name='bell' />
+      </span>
       <div className='notification-control__copy'>
         <h2>小闹钟</h2>
         <p>{getStatusLabel(supported, permission, enabled)}</p>

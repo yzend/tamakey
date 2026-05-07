@@ -1,0 +1,177 @@
+.testkit {
+  position: fixed;
+  inset-block-end: 16px;
+  inset-inline-end: 16px;
+  z-index: 1000;
+  color: #172018;
+  font:
+    13px/1.35 system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+}
+
+.testkit * {
+  box-sizing: border-box;
+}
+
+.testkit__toggle {
+  min-block-size: 38px;
+  padding: 0 14px;
+  border: 1px solid #1d3225;
+  border-radius: 8px;
+  color: #f8fff5;
+  background: #1d3225;
+  box-shadow: 0 10px 28px rgb(0 0 0 / 24%);
+  cursor: pointer;
+}
+
+.testkit__body {
+  position: absolute;
+  inset-block-end: 48px;
+  inset-inline-end: 0;
+  inline-size: min(360px, calc(100vw - 32px));
+  max-block-size: min(760px, calc(100vh - 84px));
+  overflow: auto;
+  padding: 14px;
+  border: 1px solid rgb(29 50 37 / 28%);
+  border-radius: 8px;
+  background: #fbfff6;
+  box-shadow: 0 18px 48px rgb(0 0 0 / 26%);
+}
+
+.testkit__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-block-end: 12px;
+}
+
+.testkit__header strong {
+  font-size: 16px;
+}
+
+.testkit__header span {
+  color: #607067;
+  font-size: 12px;
+}
+
+.testkit__section {
+  padding-block: 12px;
+  border-block-start: 1px solid rgb(29 50 37 / 14%);
+}
+
+.testkit__section h2 {
+  margin: 0 0 8px;
+  color: #31433a;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.testkit__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.testkit__grid--scenarios {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.testkit button,
+.testkit input,
+.testkit select {
+  font: inherit;
+}
+
+.testkit button,
+.testkit select,
+.testkit input[type='number'] {
+  inline-size: 100%;
+  min-block-size: 34px;
+  border: 1px solid rgb(29 50 37 / 22%);
+  border-radius: 6px;
+  color: #172018;
+  background: #fff;
+}
+
+.testkit button {
+  padding: 6px 8px;
+  cursor: pointer;
+}
+
+.testkit button:disabled,
+.testkit input:disabled,
+.testkit select:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.testkit__field {
+  display: grid;
+  gap: 6px;
+  margin-block-end: 8px;
+}
+
+.testkit__field span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #415249;
+  font-size: 12px;
+}
+
+.testkit__field b {
+  color: #1d3225;
+  font-weight: 700;
+}
+
+.testkit__field input[type='range'] {
+  inline-size: 100%;
+  accent-color: #2d6d4f;
+}
+
+.testkit__field input[type='number'] {
+  padding: 0 8px;
+}
+
+.testkit__pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.testkit__flags {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.testkit__check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-block-size: 34px;
+  padding: 0 8px;
+  border: 1px solid rgb(29 50 37 / 18%);
+  border-radius: 6px;
+  background: #fff;
+}
+
+@media (max-width: 520px) {
+  .testkit {
+    inset-inline: 10px;
+    inset-block-end: 10px;
+  }
+
+  .testkit__body {
+    inline-size: calc(100vw - 20px);
+  }
+
+  .testkit__grid--scenarios {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

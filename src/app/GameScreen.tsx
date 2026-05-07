@@ -15,11 +15,18 @@ import { useGameStore } from '@/game/store/useGameStore'
 import { useRuntimeStore } from '@/game/store/useRuntimeStore'
 
 import { ActionDock } from './components/ActionDock'
+import type { FlipPanelTab } from './components/FlipPanelTabs'
 import { MenuPanel } from './components/MenuPanel'
-import { NotificationControl } from './components/NotificationControl'
-import { ResetControl } from './components/ResetControl'
-import { StatMeter } from './components/StatMeter'
+import { MobileFlipPanel } from './components/MobileFlipPanel'
+import { StatsPanel } from './components/StatsPanel'
 import { StatusIsland } from './components/StatusIsland'
+import { SystemPanel } from './components/SystemPanel'
+import {
+  buildCareActions,
+  getResourceItems,
+  getStatItems,
+} from './gameScreenUi'
+import { useMediaQuery } from './useMediaQuery'
 
 type GameScreenProps = {
   onEnableNotifications: () => void
@@ -44,6 +51,8 @@ export function GameScreen({
   const pwaOfflineReady = useRuntimeStore((state) => state.pwaOfflineReady)
   const applyPwaUpdate = useRuntimeStore((state) => state.applyPwaUpdate)
   const [saveText, setSaveText] = useState('')
+  const [activeFlipTab, setActiveFlipTab] = useState<FlipPanelTab>('actions')
+  const isMobileLayout = useMediaQuery('(max-width: 620px)')
   const currentSnapshot = snapshot
     ? toPetScreenSnapshot(snapshot)
     : fallbackPetScreenSnapshot
@@ -51,6 +60,24 @@ export function GameScreen({
     ? selectPetViewModel(snapshot)
     : fallbackPetViewModel
   const isRuntimeReady = Boolean(workerClient && workerReady)
+  const controlsDisabled =
+    !isRuntimeReady || Boolean(currentSnapshot.activityId)
+  const controlsDisabledReason = !isRuntimeReady
+    ? '运行时加载中'
+    : currentSnapshot.activityId
+      ? currentSnapshot.lockReason
+      : null
+  const careActions = buildCareActions({
+    petStage: currentSnapshot.stage,
+    sleepState: currentSnapshot.sleepState,
+    disabled: controlsDisabled,
+    disabledReason: controlsDisabledReason,
+  })
+  const resources = getResourceItems(currentSnapshot)
+  const stats = getStatItems(currentSnapshot)
+  const hasMenuPanelContent = Boolean(
+    currentSnapshot.menuStack.length || currentSnapshot.activityId
+  )
 
   const postCommand = (command: GameCommand) => {
     workerClient?.post({
@@ -89,6 +116,34 @@ export function GameScreen({
     })
   }
 
+  const menuPanelProps = {
+    disabled: !isRuntimeReady,
+    pwaOfflineReady,
+    pwaUpdateAvailable:
+      pwaUpdateAvailable || currentSnapshot.settings.pwaUpdateAvailable,
+    saveText,
+    snapshot: currentSnapshot,
+    onApplyPwaUpdate: () => applyPwaUpdate?.(),
+    onCommand: postCommand,
+    onExport: exportSave,
+    onImport: importSave,
+    onSaveTextChange: setSaveText,
+  }
+
+  const systemPanel = (showSettingsEntry: boolean) => (
+    <SystemPanel
+      disabled={!isRuntimeReady}
+      notificationPermission={permission}
+      notificationsEnabled={snapshot?.settings.notificationsEnabled ?? false}
+      notificationsSupported={typeof Notification !== 'undefined'}
+      showSettingsEntry={showSettingsEntry}
+      onCommand={postCommand}
+      onEnableNotifications={onEnableNotifications}
+      onDisableNotifications={onDisableNotifications}
+      onReset={postReset}
+    />
+  )
+
   return (
     <main className={`app-shell app-shell--${currentSnapshot.settings.theme}`}>
       <section className='game-surface' aria-label='Tamakey 游戏'>
@@ -107,87 +162,28 @@ export function GameScreen({
           </div>
         </section>
 
-        <ActionDock
-          disabled={!isRuntimeReady || Boolean(currentSnapshot.activityId)}
-          disabledReason={
-            !isRuntimeReady
-              ? '运行时加载中'
-              : currentSnapshot.activityId
-                ? currentSnapshot.lockReason
-                : null
-          }
-          petStage={currentSnapshot.stage}
-          sleepState={currentSnapshot.sleepState}
-          onCommand={postCommand}
-        />
-
-        <MenuPanel
-          disabled={!isRuntimeReady}
-          pwaOfflineReady={pwaOfflineReady}
-          pwaUpdateAvailable={
-            pwaUpdateAvailable || currentSnapshot.settings.pwaUpdateAvailable
-          }
-          saveText={saveText}
-          snapshot={currentSnapshot}
-          onApplyPwaUpdate={() => applyPwaUpdate?.()}
-          onCommand={postCommand}
-          onExport={exportSave}
-          onImport={importSave}
-          onSaveTextChange={setSaveText}
-        />
-
-        <section className='secondary-panel' aria-label='宠物状态'>
-          <div className='pet-dashboard'>
-            <div className='resource-strip' aria-label='宠物资源'>
-              <span>币 {currentSnapshot.coins}</span>
-              <span>药 {currentSnapshot.medicine}</span>
-              <span>饭 {currentSnapshot.foodCount}</span>
-            </div>
-            <div className='stat-grid'>
-              <StatMeter
-                label='饥饿'
-                tone='hunger'
-                value={currentSnapshot.stats.hunger}
-              />
-              <StatMeter
-                label='开心'
-                tone='happy'
-                value={currentSnapshot.stats.happiness}
-              />
-              <StatMeter
-                label='清洁'
-                tone='clean'
-                value={currentSnapshot.stats.cleanliness}
-              />
-              <StatMeter
-                label='精力'
-                tone='sleep'
-                value={currentSnapshot.stats.energy}
-              />
-              <StatMeter
-                label='如厕'
-                tone='sleep'
-                value={currentSnapshot.stats.bladder}
-              />
-              <StatMeter
-                label='健康'
-                tone='sick'
-                value={currentSnapshot.stats.health}
-              />
-            </div>
-          </div>
-          <div className='system-controls'>
-            <NotificationControl
-              disabled={!isRuntimeReady}
-              enabled={snapshot?.settings.notificationsEnabled ?? false}
-              permission={permission}
-              supported={typeof Notification !== 'undefined'}
-              onEnable={onEnableNotifications}
-              onDisable={onDisableNotifications}
-            />
-            <ResetControl disabled={!isRuntimeReady} onReset={postReset} />
-          </div>
-        </section>
+        {isMobileLayout ? (
+          <MobileFlipPanel
+            actions={careActions}
+            activeTab={activeFlipTab}
+            hasMenuContent={hasMenuPanelContent}
+            menuPanel={<MenuPanel {...menuPanelProps} />}
+            resources={resources}
+            stats={stats}
+            systemPanel={systemPanel(true)}
+            onCommand={postCommand}
+            onTabChange={setActiveFlipTab}
+          />
+        ) : (
+          <>
+            <ActionDock actions={careActions} onCommand={postCommand} />
+            <MenuPanel {...menuPanelProps} />
+            <section className='secondary-panel' aria-label='宠物状态'>
+              <StatsPanel resources={resources} stats={stats} />
+              {systemPanel(false)}
+            </section>
+          </>
+        )}
       </section>
     </main>
   )
@@ -210,6 +206,7 @@ function toPetScreenSnapshot(state: Parameters<typeof selectPetViewModel>[0]) {
 
   return {
     ...selectPetViewModel(state),
+    petName: state.pet.name,
     stats: {
       hunger: state.pet.hunger,
       happiness: state.pet.happiness,
@@ -270,6 +267,7 @@ const fallbackPetViewModel: PetViewModel = {
 
 const fallbackPetScreenSnapshot: PetScreenSnapshot = {
   ...fallbackPetViewModel,
+  petName: 'Tamakey',
   stats: {
     hunger: 0,
     happiness: 60,

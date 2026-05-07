@@ -1,10 +1,12 @@
 import { expect, test } from '@playwright/test'
 
+import { gotoTestKit } from './testkit'
+
 test('new user starts on egg with locked menus', async ({ page }) => {
   await resetAndGoto(page)
   await expect(page.getByRole('region', { name: '宠物画面' })).toBeVisible()
   await expect(page.getByText('蛋', { exact: true })).toBeVisible()
-  await expect(page.getByText('币 25')).toBeVisible()
+  await expect(page.locator('[aria-label="币 25"]')).toBeVisible()
   await expect(page.getByRole('button', { name: /喂食/ })).toBeDisabled()
   await expectCanvasHasPixels(page)
 })
@@ -188,15 +190,56 @@ test('restores a legacy localStorage save when IndexedDB is empty', async ({
   })
 
   const page = await context.newPage()
-  await page.goto('/')
+  await gotoTestKit(page)
 
   await expect(page.getByText('小孩')).toBeVisible()
   await expect(page.getByRole('button', { name: /状态/ })).toBeEnabled()
   await page.getByRole('button', { name: /状态/ }).click()
   await expect(page.getByText('legacy-caretaker')).toBeVisible()
-  await expect(page.getByText('币 44', { exact: true })).toBeVisible()
+  await expect(page.locator('[aria-label="币 44"]')).toBeVisible()
 
   await context.close()
+})
+
+test('mobile flip panel keeps pet interaction in one viewport', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await resetAndGoto(page)
+
+  await expect(page.getByRole('region', { name: '宠物画面' })).toBeVisible()
+  await expect(page.getByRole('tab', { name: '动作' })).toBeVisible()
+  await expect(page.getByRole('tab', { name: '状态' })).toBeVisible()
+  await expect(page.getByRole('tab', { name: '系统' })).toBeVisible()
+
+  await page.getByRole('tab', { name: '状态' }).click()
+  await expect(page.locator('[aria-label="药 2"]')).toBeVisible()
+  await expect(page.getByRole('meter', { name: /健康/ })).toBeVisible()
+
+  await page.getByRole('tab', { name: '系统' }).click()
+  await expect(page.getByText('小闹钟')).toBeVisible()
+  await expect(page.getByRole('button', { name: /重来/ })).toBeVisible()
+
+  await page.getByRole('tab', { name: '动作' }).click()
+  await page.getByRole('button', { name: /状态/ }).click()
+  await expect(page.getByLabel('菜单面板')).toBeVisible()
+  await expect(page.getByRole('button', { name: /^设置$/ })).toBeVisible()
+})
+
+test('mobile flip panel opens action menus inside the panel', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await resetAndGoto(page)
+  await enableFastHatch(page)
+  await expect(page.getByText('幼体')).toBeVisible({ timeout: 10_000 })
+  await closeMenus(page)
+
+  await page.getByRole('tab', { name: '动作' }).click()
+  await page.getByRole('button', { name: /喂食/ }).click()
+  await expect(page.getByLabel('菜单面板')).toBeVisible()
+  await page.getByRole('button', { name: /^正餐/ }).click()
+  await expect(page.getByRole('button', { name: /^正餐/ })).toBeVisible()
 })
 
 async function enableFastHatch(page: import('@playwright/test').Page) {
@@ -207,7 +250,7 @@ async function enableFastHatch(page: import('@playwright/test').Page) {
 }
 
 async function resetAndGoto(page: import('@playwright/test').Page) {
-  await page.goto('/')
+  await gotoTestKit(page)
   await page.evaluate(async () => {
     localStorage.clear()
     await new Promise<void>((resolve) => {
@@ -218,6 +261,19 @@ async function resetAndGoto(page: import('@playwright/test').Page) {
     })
   })
   await page.reload()
+  await expect(page.getByTestId('testkit-panel')).toBeAttached()
+}
+
+async function closeMenus(page: import('@playwright/test').Page) {
+  for (let index = 0; index < 4; index += 1) {
+    const backButton = page.locator('.menu-panel__header button', {
+      hasText: '返回',
+    })
+    if ((await backButton.count()) === 0) return
+    await backButton.evaluate((button) => {
+      if (button instanceof HTMLButtonElement) button.click()
+    })
+  }
 }
 
 async function expectCanvasHasPixels(page: import('@playwright/test').Page) {

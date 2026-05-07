@@ -1,0 +1,7 @@
+name = "tamakey"
+compatibility_date = "2026-05-07"
+pages_build_output_dir = "dist"
+
+[vars]
+ENVIRONMENT = "production"
+API_VERSION = "v1.1"

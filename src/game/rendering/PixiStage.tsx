@@ -1,3 +1,4 @@
+// 渲染模块：挂载并管理 Pixi 游戏舞台的 React 桥接层。
 import { useEffect, useRef, useState } from 'react'
 import { Application } from 'pixi.js'
 

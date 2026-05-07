@@ -3,6 +3,8 @@ import type {
   PetScreenSnapshot,
 } from '@/game/rendering/viewModels'
 
+import { PixelIcon, type PixelIconName } from './PixelIcon'
+
 type MenuPanelProps = {
   disabled: boolean
   pwaOfflineReady: boolean
@@ -528,19 +530,38 @@ export function MenuPanel({
 
       {activeMenu === 'stats' ? (
         <div className='menu-panel__content'>
-          <p>
-            金币 {snapshot.coins} · 药品 {snapshot.medicine} · 阶段{' '}
-            {getStageLabel(snapshot.stage)}
-          </p>
+          <div className='status-summary' aria-label='状态摘要'>
+            <span>
+              <PixelIcon name='coin' />
+              金币 {snapshot.coins}
+            </span>
+            <span>
+              <PixelIcon name='medicine' />
+              药品 {snapshot.medicine}
+            </span>
+            <span>
+              <PixelIcon name='spark' />
+              阶段 {getStageLabel(snapshot.stage)}
+            </span>
+          </div>
           <div className='profile-strip'>
-            <span>{snapshot.profile.username}</span>
-            <span>第 {snapshot.profile.generation} 代</span>
-            <span>死亡 {snapshot.records.deaths}</span>
+            <span className='profile-strip__item'>
+              <PixelIcon name='care' />
+              {snapshot.profile.username}
+            </span>
+            <span className='profile-strip__item'>
+              <PixelIcon name='spark' />第 {snapshot.profile.generation} 代
+            </span>
+            <span className='profile-strip__item'>
+              <PixelIcon name='reset' />
+              死亡 {snapshot.records.deaths}
+            </span>
           </div>
           <div className='mission-list'>
             {snapshot.missions.map((mission) => (
               <div className='mission-row' key={mission.id}>
-                <span>
+                <span className='mission-row__copy'>
+                  <PixelIcon name='bell' />
                   {getMissionLabel(mission)}：{mission.progress}/{mission.goal}
                 </span>
                 <button
@@ -684,6 +705,7 @@ function CommandGrid({
     <div className='command-grid'>
       {items.map((item) => {
         const disabledReason = baseDisabledReason ?? item.disabledReason ?? null
+        const icon = item.icon ?? getCommandIcon(item)
         return (
           <button
             disabled={Boolean(disabledReason)}
@@ -692,8 +714,13 @@ function CommandGrid({
             type='button'
             onClick={() => onCommand(item.command)}
           >
-            <span>{item.label}</span>
-            {disabledReason ? <small>{disabledReason}</small> : null}
+            <span className='command-grid__icon' aria-hidden='true'>
+              <PixelIcon name={icon} />
+            </span>
+            <span className='command-grid__copy'>
+              <span className='command-grid__label'>{item.label}</span>
+              {disabledReason ? <small>{disabledReason}</small> : null}
+            </span>
           </button>
         )
       })}
@@ -702,9 +729,110 @@ function CommandGrid({
 }
 
 type CommandGridItem = {
+  icon?: PixelIconName
   label: string
   command: GameCommand
   disabledReason?: string | null
+}
+
+function getCommandIcon(item: CommandGridItem): PixelIconName {
+  const targetIcon = getTargetIcon(item.command.targetId)
+  if (targetIcon) return targetIcon
+
+  switch (item.command.type) {
+    case 'bath':
+      return 'bath'
+    case 'birthday':
+    case 'pet':
+    case 'play':
+    case 'praise':
+      return 'heart'
+    case 'brushTeeth':
+      return 'brush'
+    case 'buyShopItem':
+      return 'shop'
+    case 'cleanRoom':
+      return 'clean'
+    case 'closeMenu':
+      return 'reset'
+    case 'cook':
+      return 'cook'
+    case 'feedMeal':
+      return 'bento'
+    case 'feedSnack':
+      return 'snack'
+    case 'fortune':
+      return 'spark'
+    case 'medicine':
+    case 'revive':
+      return 'medicine'
+    case 'openMenu':
+      return 'settings'
+    case 'plant':
+    case 'harvest':
+    case 'water':
+      return 'garden'
+    case 'scold':
+      return 'bell'
+    case 'sleep':
+      return 'moon'
+    case 'snapMeal':
+      return 'feed'
+    case 'startActivity':
+    case 'startMinigame':
+      return 'arcade'
+    case 'toilet':
+      return 'poop'
+    case 'wake':
+      return 'sun'
+    case 'work':
+      return 'work'
+    default:
+      return 'spark'
+  }
+}
+
+function getTargetIcon(
+  targetId: GameCommand['targetId']
+): PixelIconName | null {
+  switch (targetId) {
+    case 'activity':
+    case 'card-match':
+    case 'school':
+      return 'arcade'
+    case 'bath':
+      return 'bath'
+    case 'care':
+      return 'care'
+    case 'feeding':
+    case 'basic-meal':
+      return 'feed'
+    case 'garden':
+    case 'sprout-planter':
+    case 'sprout-seed':
+      return 'garden'
+    case 'medicine':
+      return 'medicine'
+    case 'online':
+    case 'phone':
+    case 'social':
+      return 'phone'
+    case 'settings':
+      return 'settings'
+    case 'shop':
+      return 'shop'
+    case 'soap':
+      return 'clean'
+    case 'stats':
+      return 'stats'
+    case 'stuff':
+    case 'beanbag':
+    case 'ribbon-pin':
+    case 'sprout-pin':
+      return 'stuff'
+    default:
+      return null
+  }
 }
 
 function SettingToggle({

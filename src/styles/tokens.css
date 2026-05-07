@@ -68,6 +68,8 @@
   --font-mono:
     'Fusion Pixel Zh_hans', 'SFMono-Regular', Consolas, 'Liberation Mono',
     monospace;
+  --px-font: var(--font-ui);
+  --px-line-height: 1.55;
 
   --shadow-panel: 3px 3px 0 var(--color-shadow);
   --shadow-screen:

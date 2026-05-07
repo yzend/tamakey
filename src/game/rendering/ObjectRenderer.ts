@@ -1,3 +1,4 @@
+// 渲染模块：绘制便便、家具、活动物件和花园元素等场景对象。
 import { Container, Graphics } from 'pixi.js'
 
 import type { PetViewModel } from './viewModels'

@@ -5,11 +5,17 @@
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-ui);
+  font-size: 14px;
   font-synthesis: none;
-  line-height: 1.5;
+  line-height: var(--px-line-height);
   text-rendering: geometricPrecision;
   -webkit-font-smoothing: none;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.pixelium {
+  font-family: var(--px-font);
+  line-height: var(--px-line-height);
 }
 
 * {

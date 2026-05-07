@@ -12,6 +12,7 @@ dist
 dist-ssr
 dev-dist
 test-results
+.wrangler
 tmp-*.png
 *.local
 

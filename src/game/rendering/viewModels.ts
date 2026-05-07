@@ -1,3 +1,4 @@
+// 渲染模块：Pixi 屏幕渲染共享的视图模型契约。
 import type {
   GameEvent,
   GameCommand,
@@ -54,6 +55,7 @@ export type PetStatsViewModel = {
 }
 
 export type PetScreenSnapshot = PetViewModel & {
+  petName: string
   stats: PetStatsViewModel
   ageLabel: string
   menuStack: MenuId[]

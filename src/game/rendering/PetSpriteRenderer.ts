@@ -1,3 +1,4 @@
+// 渲染模块：绘制备用宠物精灵、配饰和待机动作。
 import { Container, Graphics } from 'pixi.js'
 
 import { chooseAnimation, type AnimationName } from './AnimationController'

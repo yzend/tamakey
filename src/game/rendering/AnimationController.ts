@@ -1,3 +1,4 @@
+// 渲染模块：根据成长阶段、心情和状态选择宠物动画。
 import type { PetStage, PetViewModel } from './viewModels'
 
 export type AnimationName =

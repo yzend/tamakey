@@ -1,7 +1,9 @@
 import { expect, test } from '@playwright/test'
 
+import { gotoTestKit } from './testkit'
+
 test('serves installable PWA metadata and icon assets', async ({ page }) => {
-  await page.goto('/')
+  await gotoTestKit(page)
 
   const manifestHref = await page
     .locator('link[rel="manifest"]')
@@ -40,7 +42,7 @@ test('keeps the game shell usable when service workers are blocked', async ({
   const context = await browser.newContext({ serviceWorkers: 'block' })
   const page = await context.newPage()
 
-  await page.goto('/')
+  await gotoTestKit(page)
 
   await expect(page.getByRole('region', { name: '宠物画面' })).toBeVisible()
   await expect(page.getByText('蛋', { exact: true })).toBeVisible()

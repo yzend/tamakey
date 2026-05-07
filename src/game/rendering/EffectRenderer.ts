@@ -1,3 +1,4 @@
+// 渲染模块：播放互动和生命周期事件触发的临时粒子特效。
 import { Container, Graphics } from 'pixi.js'
 
 import type { InteractionType, PetMood } from './viewModels'

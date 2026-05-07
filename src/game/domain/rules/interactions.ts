@@ -1187,7 +1187,7 @@ function openMenuStack(
   // 打开子菜单时去重后压栈，重复点击同一菜单不会产生重复层级。
   const menuId = normalizeMenuId(targetId)
   if (menuId === 'main') return ['main']
-  if (current.length === 0) return ['main', menuId]
+  if (current.length === 0) return [menuId]
   return [...current.filter((id) => id !== menuId), menuId]
 }
 

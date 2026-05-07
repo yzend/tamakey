@@ -1,3 +1,4 @@
+// 渲染模块：绘制 LCD 风格的屏幕网格和边缘遮罩。
 import { Container, Graphics } from 'pixi.js'
 
 export class ScreenOverlayRenderer {
