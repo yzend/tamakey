@@ -5,7 +5,6 @@ import type {
 
 type MenuPanelProps = {
   disabled: boolean
-  modText: string
   pwaOfflineReady: boolean
   pwaUpdateAvailable: boolean
   saveText: string
@@ -14,14 +13,11 @@ type MenuPanelProps = {
   onCommand: (command: GameCommand) => void
   onExport: () => void
   onImport: () => void
-  onImportMod: () => void
-  onModTextChange: (value: string) => void
   onSaveTextChange: (value: string) => void
 }
 
 export function MenuPanel({
   disabled,
-  modText,
   pwaOfflineReady,
   pwaUpdateAvailable,
   saveText,
@@ -30,8 +26,6 @@ export function MenuPanel({
   onCommand,
   onExport,
   onImport,
-  onImportMod,
-  onModTextChange,
   onSaveTextChange,
 }: MenuPanelProps) {
   const activeMenu = snapshot.menuStack[snapshot.menuStack.length - 1] ?? null
@@ -625,17 +619,10 @@ export function MenuPanel({
               label='模拟中心'
               onCommand={onCommand}
             />
-            <FeatureToggle
-              checked={snapshot.featureFlags.mods}
-              disabled={disabled}
-              feature='mods'
-              label='本地模组'
-              onCommand={onCommand}
-            />
           </div>
 
           <div className='theme-grid' aria-label='主题'>
-            {(['classic', 'mint', 'contrast'] as const).map((theme) => (
+            {themeOptions.map((theme) => (
               <button
                 className='setting-toggle'
                 disabled={disabled}
@@ -671,13 +658,6 @@ export function MenuPanel({
 
           <div className='save-tools'>
             <button
-              disabled={disabled || !modText}
-              type='button'
-              onClick={onImportMod}
-            >
-              导入本地模组
-            </button>
-            <button
               disabled={disabled || !pwaUpdateAvailable}
               type='button'
               onClick={onApplyPwaUpdate}
@@ -685,12 +665,6 @@ export function MenuPanel({
               应用更新
             </button>
           </div>
-          <textarea
-            aria-label='本地模组导入文本'
-            placeholder='{"schemaVersion":1,"name":"本地装饰","shopItems":[],"craftRecipes":[]}'
-            value={modText}
-            onChange={(event) => onModTextChange(event.target.value)}
-          />
         </div>
       ) : null}
     </section>
@@ -800,6 +774,18 @@ function FeatureToggle({
   )
 }
 
+const themeOptions = [
+  'classic',
+  'mint',
+  'contrast',
+  'sakura',
+  'aqua',
+  'grape',
+  'toyblue',
+  'strawberry',
+  'matcha',
+] as const
+
 function createSettingCommand(
   setting: keyof PetScreenSnapshot['settings'],
   value: boolean | string
@@ -856,18 +842,24 @@ function getMenuTitle(menu: string) {
     care: '照护',
     classic: '经典',
     contrast: '高对比',
+    aqua: '水色糖果',
     feeding: '喂食',
     garden: '花园',
+    grape: '葡萄汽水',
     main: '主菜单',
+    matcha: '抹茶布丁',
     mint: '薄荷',
     online: '在线',
     phone: '电话',
+    sakura: '樱花奶油',
     school: '学校',
     settings: '设置',
     shop: '商店',
     social: '社交',
     stats: '状态',
+    strawberry: '草莓牛奶',
     stuff: '物品',
+    toyblue: '玩具蓝',
   }
   return labels[menu] ?? menu
 }

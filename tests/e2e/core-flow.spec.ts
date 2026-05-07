@@ -4,6 +4,7 @@ test('new user starts on egg with locked menus', async ({ page }) => {
   await resetAndGoto(page)
   await expect(page.getByRole('region', { name: '宠物画面' })).toBeVisible()
   await expect(page.getByText('蛋', { exact: true })).toBeVisible()
+  await expect(page.getByText('币 25')).toBeVisible()
   await expect(page.getByRole('button', { name: /喂食/ })).toBeDisabled()
   await expectCanvasHasPixels(page)
 })
@@ -12,7 +13,7 @@ test('hatches with fast hatch and completes a care loop', async ({ page }) => {
   await resetAndGoto(page)
 
   await enableFastHatch(page)
-  await expect(page.getByText('幼年')).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByText('幼体')).toBeVisible({ timeout: 10_000 })
   await expect(page.getByRole('button', { name: /喂食/ })).toBeEnabled()
   await expectCanvasHasPixels(page)
 
@@ -35,37 +36,20 @@ test('hatches with fast hatch and completes a care loop', async ({ page }) => {
   ).toBeEnabled()
 })
 
-test('covers shop, school, garden, local mod, and mock online menus', async ({
-  page,
-}) => {
+test('covers shop, school, garden, and mock online menus', async ({ page }) => {
   await resetAndGoto(page)
   await enableFastHatch(page)
-  await expect(page.getByText('幼年')).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByText('幼体')).toBeVisible({ timeout: 10_000 })
 
   await page.getByRole('button', { name: /状态/ }).click()
   await page.getByRole('button', { name: /^设置$/ }).click()
   await page.getByRole('button', { name: /模拟社交/ }).click()
   await page.getByRole('button', { name: /模拟中心/ }).click()
-  await page.getByRole('button', { name: '本地模组', exact: true }).click()
+  await expect(
+    page.getByRole('button', { name: '本地模组', exact: true })
+  ).toHaveCount(0)
   await page.getByRole('button', { name: /薄荷/ }).click()
   await expect(page.locator('main')).toHaveClass(/app-shell--mint/)
-
-  await page.getByLabel('本地模组导入文本').fill(
-    JSON.stringify({
-      schemaVersion: 1,
-      name: 'E2E Mod',
-      shopItems: [
-        {
-          id: 'mod-e2e-chair',
-          label: 'E2E Chair',
-          kind: 'furniture',
-          price: 20,
-        },
-      ],
-    })
-  )
-  await page.getByRole('button', { name: /导入本地模组/ }).click()
-  await expect(page.getByText(/本地模组已导入/)).toBeVisible()
 
   await page.getByRole('button', { name: /活动/ }).click()
   await page.getByRole('button', { name: /^学校/ }).click()
@@ -206,11 +190,11 @@ test('restores a legacy localStorage save when IndexedDB is empty', async ({
   const page = await context.newPage()
   await page.goto('/')
 
-  await expect(page.getByText('童年')).toBeVisible()
+  await expect(page.getByText('小孩')).toBeVisible()
   await expect(page.getByRole('button', { name: /状态/ })).toBeEnabled()
   await page.getByRole('button', { name: /状态/ }).click()
   await expect(page.getByText('legacy-caretaker')).toBeVisible()
-  await expect(page.getByText(/金币 44/)).toBeVisible()
+  await expect(page.getByText('币 44', { exact: true })).toBeVisible()
 
   await context.close()
 })

@@ -44,7 +44,6 @@ export function GameScreen({
   const pwaOfflineReady = useRuntimeStore((state) => state.pwaOfflineReady)
   const applyPwaUpdate = useRuntimeStore((state) => state.applyPwaUpdate)
   const [saveText, setSaveText] = useState('')
-  const [modText, setModText] = useState('')
   const currentSnapshot = snapshot
     ? toPetScreenSnapshot(snapshot)
     : fallbackPetScreenSnapshot
@@ -90,17 +89,6 @@ export function GameScreen({
     })
   }
 
-  const importMod = () => {
-    postCommand({
-      type: 'importMod',
-      value: modText,
-      payload: {
-        kind: 'mod',
-        text: modText,
-      },
-    })
-  }
-
   return (
     <main className={`app-shell app-shell--${currentSnapshot.settings.theme}`}>
       <section className='game-surface' aria-label='Tamakey 游戏'>
@@ -135,7 +123,6 @@ export function GameScreen({
 
         <MenuPanel
           disabled={!isRuntimeReady}
-          modText={modText}
           pwaOfflineReady={pwaOfflineReady}
           pwaUpdateAvailable={
             pwaUpdateAvailable || currentSnapshot.settings.pwaUpdateAvailable
@@ -146,43 +133,48 @@ export function GameScreen({
           onCommand={postCommand}
           onExport={exportSave}
           onImport={importSave}
-          onImportMod={importMod}
-          onModTextChange={setModText}
           onSaveTextChange={setSaveText}
         />
 
         <section className='secondary-panel' aria-label='宠物状态'>
-          <div className='stat-grid'>
-            <StatMeter
-              label='饥饿'
-              tone='hunger'
-              value={currentSnapshot.stats.hunger}
-            />
-            <StatMeter
-              label='开心'
-              tone='happy'
-              value={currentSnapshot.stats.happiness}
-            />
-            <StatMeter
-              label='清洁'
-              tone='clean'
-              value={currentSnapshot.stats.cleanliness}
-            />
-            <StatMeter
-              label='精力'
-              tone='sleep'
-              value={currentSnapshot.stats.energy}
-            />
-            <StatMeter
-              label='如厕'
-              tone='sleep'
-              value={currentSnapshot.stats.bladder}
-            />
-            <StatMeter
-              label='健康'
-              tone='sick'
-              value={currentSnapshot.stats.health}
-            />
+          <div className='pet-dashboard'>
+            <div className='resource-strip' aria-label='宠物资源'>
+              <span>币 {currentSnapshot.coins}</span>
+              <span>药 {currentSnapshot.medicine}</span>
+              <span>饭 {currentSnapshot.foodCount}</span>
+            </div>
+            <div className='stat-grid'>
+              <StatMeter
+                label='饥饿'
+                tone='hunger'
+                value={currentSnapshot.stats.hunger}
+              />
+              <StatMeter
+                label='开心'
+                tone='happy'
+                value={currentSnapshot.stats.happiness}
+              />
+              <StatMeter
+                label='清洁'
+                tone='clean'
+                value={currentSnapshot.stats.cleanliness}
+              />
+              <StatMeter
+                label='精力'
+                tone='sleep'
+                value={currentSnapshot.stats.energy}
+              />
+              <StatMeter
+                label='如厕'
+                tone='sleep'
+                value={currentSnapshot.stats.bladder}
+              />
+              <StatMeter
+                label='健康'
+                tone='sick'
+                value={currentSnapshot.stats.health}
+              />
+            </div>
           </div>
           <div className='system-controls'>
             <NotificationControl

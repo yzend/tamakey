@@ -6,7 +6,9 @@ type StatusIslandProps = {
 }
 
 export function StatusIsland({ snapshot, notice = null }: StatusIslandProps) {
-  const statusLabel = notice ?? getStatusLabel(snapshot)
+  const statusLabel = notice
+    ? summarizeNotice(notice)
+    : getStatusLabel(snapshot)
   const isMuted = snapshot.stage === 'dead'
 
   return (
@@ -32,24 +34,31 @@ export function StatusIsland({ snapshot, notice = null }: StatusIslandProps) {
 }
 
 function getStatusLabel(snapshot: PetScreenSnapshot) {
-  if (snapshot.stage === 'dead') return '离线'
-  if (snapshot.sleepState === 'sleeping') return '休息中'
-  if (snapshot.sickness !== 'none') return '需要用药'
-  if (snapshot.poopCount > 2) return '需要打扫'
-  if (snapshot.stats.hunger > 70) return '饥饿'
-  if (snapshot.stats.happiness < 35) return '无聊'
-  return '稳定'
+  if (snapshot.stage === 'dead') return '再见'
+  if (snapshot.sleepState === 'sleeping') return '做梦中'
+  if (snapshot.sickness !== 'none') return '要吃药'
+  if (snapshot.poopCount > 2) return '要打扫'
+  if (snapshot.stats.hunger > 70) return '肚子空'
+  if (snapshot.stats.happiness < 35) return '想玩'
+  return '心情不错'
+}
+
+function summarizeNotice(notice: string) {
+  if (notice.includes('离线') || notice.includes('等待')) return '刚刚想你'
+  if (notice.includes('生病') || notice.includes('健康')) return '需要照护'
+  if (notice.includes('成长')) return '长大一点'
+  return notice
 }
 
 function formatStage(stage: string) {
   const labels: Record<string, string> = {
     egg: '蛋',
-    baby: '幼年',
-    child: '童年',
-    teen: '少年',
-    adult: '成年',
-    elder: '长者',
-    dead: '死亡',
+    baby: '幼体',
+    child: '小孩',
+    teen: '青春',
+    adult: '大人',
+    elder: '长辈',
+    dead: '离开',
   }
   return labels[stage] ?? stage
 }

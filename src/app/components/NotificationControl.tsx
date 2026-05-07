@@ -20,7 +20,7 @@ export function NotificationControl({
   return (
     <section className='notification-control pixel-edge'>
       <div className='notification-control__copy'>
-        <h2>提醒</h2>
+        <h2>小闹钟</h2>
         <p>{getStatusLabel(supported, permission, enabled)}</p>
       </div>
       <button
@@ -41,8 +41,8 @@ function getStatusLabel(
   permission: NotificationPermission,
   enabled: boolean
 ): string {
-  if (!supported) return '当前浏览器不支持。'
-  if (permission === 'denied') return '已被浏览器设置阻止。'
-  if (enabled && permission === 'granted') return '照护提醒已开启。'
-  return '在此设备开启浏览器提醒。'
+  if (!supported) return '这个浏览器不能叫你。'
+  if (permission === 'denied') return '提醒被浏览器挡住了。'
+  if (enabled && permission === 'granted') return '会在需要时叫你。'
+  return '离开时也能收到消息。'
 }

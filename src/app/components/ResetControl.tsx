@@ -12,9 +12,9 @@ export function ResetControl({ disabled = false, onReset }: ResetControlProps) {
       onClick={onReset}
     >
       <span className='reset-control__icon' aria-hidden='true'>
-        R
+        ↺
       </span>
-      <span>重置</span>
+      <span>重来</span>
     </button>
   )
 }

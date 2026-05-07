@@ -1,27 +1,59 @@
+@font-face {
+  font-display: swap;
+  font-family: 'Fusion Pixel Zh_hans';
+  src: url('/assets/fonts/fusion-pixel-12px-proportional-zh_hans.ttf.woff2')
+    format('woff2');
+}
+
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
-  --color-bg: #0e1117;
-  --color-surface: #171b22;
-  --color-surface-raised: #202630;
-  --color-screen: #d8e7b5;
-  --color-screen-dark: #8fa36f;
-  --color-text: #f4f7f2;
-  --color-text-muted: #a8b0a8;
-  --color-border: #323a45;
-  --color-hunger: #f2b84b;
-  --color-happy: #8bdc7d;
-  --color-clean: #7ec8d8;
-  --color-sick: #ef6f6c;
-  --color-sleep: #a58cff;
-  --color-dead: #7d8490;
+  --color-bg: #fff1c8;
+  --color-surface: #ff9fc5;
+  --color-surface-raised: #fff8dc;
+  --color-control: #ffd95c;
+  --color-control-alt: #7ee8d3;
+  --color-screen: #d7f6a3;
+  --color-screen-dark: #6f9654;
+  --color-text: #3a2550;
+  --color-text-muted: #7a5b86;
+  --color-border: #3a2550;
+  --color-shadow: #3a2550;
+  --color-hunger: #ffad2f;
+  --color-happy: #35c66b;
+  --color-clean: #26bdd4;
+  --color-sick: #ff5f83;
+  --color-sleep: #8c70e8;
+  --color-dead: #9a849f;
+  --page-bg-image:
+    linear-gradient(rgb(58 37 80 / 10%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(58 37 80 / 10%) 1px, transparent 1px);
+  --shell-bg-image: repeating-linear-gradient(
+    0deg,
+    rgb(255 255 255 / 22%) 0 2px,
+    transparent 2px 10px
+  );
 
-  --radius-xs: 4px;
-  --radius-sm: 8px;
-  --radius-pill: 999px;
+  --radius-xs: 0;
+  --radius-sm: 0;
+  --radius-pill: 0;
 
-  --pixel-border: 2px;
+  --pixel-border: 3px;
   --pixel-unit: 4px;
+  --pixel-corner: polygon(
+    0 var(--pixel-unit),
+    var(--pixel-unit) var(--pixel-unit),
+    var(--pixel-unit) 0,
+    calc(100% - var(--pixel-unit)) 0,
+    calc(100% - var(--pixel-unit)) var(--pixel-unit),
+    100% var(--pixel-unit),
+    100% calc(100% - var(--pixel-unit)),
+    calc(100% - var(--pixel-unit)) calc(100% - var(--pixel-unit)),
+    calc(100% - var(--pixel-unit)) 100%,
+    var(--pixel-unit) 100%,
+    var(--pixel-unit) calc(100% - var(--pixel-unit)),
+    0 calc(100% - var(--pixel-unit))
+  );
 
   --space-1: 4px;
   --space-2: 8px;
@@ -31,11 +63,13 @@
   --space-6: 32px;
 
   --font-ui:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    'Segoe UI', sans-serif;
-  --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+    'Fusion Pixel Zh_hans', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-mono:
+    'Fusion Pixel Zh_hans', 'SFMono-Regular', Consolas, 'Liberation Mono',
+    monospace;
 
-  --shadow-panel: 0 18px 60px rgb(0 0 0 / 32%);
+  --shadow-panel: 3px 3px 0 var(--color-shadow);
   --shadow-screen:
-    0 0 0 1px rgb(255 255 255 / 8%), 0 24px 80px rgb(216 231 181 / 12%);
+    0 0 0 var(--pixel-border) var(--color-shadow), 5px 5px 0 rgb(58 37 80 / 80%);
 }

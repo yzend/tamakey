@@ -51,6 +51,18 @@ const weatherStates: ReadonlySet<WeatherState> = new Set([
   'wind',
 ])
 
+const themeNames = new Set([
+  'classic',
+  'mint',
+  'contrast',
+  'sakura',
+  'aqua',
+  'grape',
+  'toyblue',
+  'strawberry',
+  'matcha',
+] as const)
+
 const sceneIds: ReadonlySet<SceneId> = new Set([
   'home',
   'bathroom',
@@ -446,11 +458,7 @@ function completeGameState(
         sourceSettings.fastHatch,
         baseline.settings.fastHatch
       ),
-      theme: memberOr(
-        sourceSettings.theme,
-        new Set(['classic', 'mint', 'contrast'] as const),
-        'classic'
-      ),
+      theme: memberOr(sourceSettings.theme, themeNames, 'classic'),
       pwaUpdateAvailable: booleanOr(sourceSettings.pwaUpdateAvailable, false),
     },
     featureFlags: {
@@ -599,11 +607,7 @@ function validateSettings(value: unknown): void {
   assertBoolean(value.reducedMotion, 'settings.reducedMotion')
   assertBoolean(value.soundEnabled, 'settings.soundEnabled')
   assertBoolean(value.fastHatch, 'settings.fastHatch')
-  assertMember(
-    value.theme,
-    new Set(['classic', 'mint', 'contrast'] as const),
-    'settings.theme'
-  )
+  assertMember(value.theme, themeNames, 'settings.theme')
   assertBoolean(value.pwaUpdateAvailable, 'settings.pwaUpdateAvailable')
 }
 

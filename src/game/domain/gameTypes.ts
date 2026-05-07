@@ -366,7 +366,16 @@ export type GameState = {
     reducedMotion: boolean
     soundEnabled: boolean
     fastHatch: boolean
-    theme: 'classic' | 'mint' | 'contrast'
+    theme:
+      | 'classic'
+      | 'mint'
+      | 'contrast'
+      | 'sakura'
+      | 'aqua'
+      | 'grape'
+      | 'toyblue'
+      | 'strawberry'
+      | 'matcha'
     pwaUpdateAvailable: boolean
   }
   featureFlags: {
