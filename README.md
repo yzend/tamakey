@@ -7,6 +7,8 @@ packaging.
 
 - `pnpm dev` starts the local dev server.
 - `pnpm build` typechecks and builds for production.
+- `pnpm deploy` deploys an existing `dist` build to the `tamakey`
+  Cloudflare Pages project.
 - `pnpm pages:dev` builds the app and runs Cloudflare Pages locally with
   Functions.
 - `pnpm pages:deploy` builds and deploys `dist` to the `tamakey` Cloudflare
@@ -37,6 +39,18 @@ V1.1 is ready for Cloudflare Pages deployment:
 The game still uses IndexedDB/localStorage for saves. The Hono structure is
 reserved for V2, where Pages Functions can add D1, KV, login, and cloud-save
 routes without changing the frontend hosting model.
+
+Cloudflare build settings:
+
+- Build command: `pnpm run build`
+- Deploy command: `pnpm run deploy`
+- Build output directory: `dist`
+
+Do not use `npx wrangler deploy` for this project. That command targets
+Workers, but Tamakey is a Pages app with Pages Functions.
+
+If Wrangler can access multiple Cloudflare accounts in a non-interactive
+environment, set `CLOUDFLARE_ACCOUNT_ID` for the Pages project account.
 
 ## PWA
 
