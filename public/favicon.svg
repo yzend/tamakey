@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Tamakey">
+  <rect width="64" height="64" rx="8" fill="#0e1117"/>
+  <rect x="8" y="8" width="48" height="48" rx="4" fill="#202630"/>
+  <path d="M32 12 48 24v18L32 54 16 42V24Z" fill="#d8e7b5"/>
+  <path d="M32 18 42 26v13l-10 8-10-8V26Z" fill="#8bdc7d"/>
+  <rect x="29" y="24" width="6" height="17" fill="#24311f"/>
+  <rect x="35" y="24" width="7" height="5" fill="#24311f"/>
+  <rect x="35" y="33" width="5" height="4" fill="#24311f"/>
+  <rect x="24" y="38" width="16" height="5" fill="#24311f"/>
+  <rect x="18" y="24" width="4" height="4" fill="#f2b84b"/>
+  <rect x="44" y="40" width="4" height="4" fill="#ef6f6c"/>
+</svg>
