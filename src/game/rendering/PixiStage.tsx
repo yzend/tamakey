@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Application } from 'pixi.js'
 
 import { PixiGameRenderer } from './PixiGameRenderer'
+import { SCREEN_HEIGHT, SCREEN_WIDTH } from './renderingConstants'
 import type { PetViewModel, QueuedGameEvent } from './viewModels'
 
 type PixiStageProps = {
@@ -43,10 +44,10 @@ export function PixiStage({
 
     async function start() {
       await app.init({
-        width: 160,
-        height: 144,
+        width: SCREEN_WIDTH,
+        height: SCREEN_HEIGHT,
         background: '#d8e7b5',
-        antialias: false,
+        antialias: true,
         resolution: 1,
         autoDensity: false,
       })

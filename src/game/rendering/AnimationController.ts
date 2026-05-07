@@ -19,6 +19,8 @@ export type AnimationName =
   | 'pet_sick'
   | 'pet_dead'
 
+export type PetRendererAnimationName = AnimationName | 'pet_clean'
+
 export function chooseAnimation(viewModel: PetViewModel): AnimationName {
   if (viewModel.stage === 'dead') return 'pet_dead'
   if (viewModel.stage === 'egg') return 'egg_idle'
@@ -56,4 +58,39 @@ export function resolveStageAnimation(
   }
 
   return `baby_${suffix}`
+}
+
+export function chooseOneShotAnimation(
+  interaction: string,
+  stage: PetStage = 'baby'
+): PetRendererAnimationName | null {
+  if (interaction === 'feedMeal' || interaction === 'feedSnack') {
+    return 'pet_eat'
+  }
+
+  if (
+    interaction === 'play' ||
+    interaction === 'startMinigame' ||
+    interaction === 'finishMinigame'
+  ) {
+    return 'pet_play'
+  }
+
+  if (
+    interaction === 'clean' ||
+    interaction === 'bath' ||
+    interaction === 'brushTeeth'
+  ) {
+    return 'pet_clean'
+  }
+
+  if (interaction === 'pet' || interaction === 'praise') {
+    return resolveStageAnimation(stage, 'happy')
+  }
+
+  if (interaction === 'scold') {
+    return resolveStageAnimation(stage, 'sad')
+  }
+
+  return null
 }

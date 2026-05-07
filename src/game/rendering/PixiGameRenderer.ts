@@ -1,11 +1,13 @@
 // 渲染模块：协调房间、对象、宠物、特效和遮罩等 Pixi 图层。
 import { Container, type Application, type Ticker } from 'pixi.js'
 
+import { chooseOneShotAnimation } from './AnimationController'
 import { EffectRenderer } from './EffectRenderer'
 import { ObjectRenderer } from './ObjectRenderer'
 import { PetSpriteRenderer } from './PetSpriteRenderer'
 import { RoomRenderer } from './RoomRenderer'
 import { ScreenOverlayRenderer } from './ScreenOverlayRenderer'
+import { RENDER_SCALE } from './renderingConstants'
 import type { GameEvent, PetViewModel } from './viewModels'
 
 export class PixiGameRenderer {
@@ -32,6 +34,11 @@ export class PixiGameRenderer {
     this.petLayer.zIndex = 20
     this.effectLayer.zIndex = 30
     this.overlayLayer.zIndex = 40
+
+    this.roomLayer.scale.set(RENDER_SCALE)
+    this.objectLayer.scale.set(RENDER_SCALE)
+    this.effectLayer.scale.set(RENDER_SCALE)
+    this.overlayLayer.scale.set(RENDER_SCALE)
 
     this.roomLayer.addChild(this.roomRenderer.container)
     this.objectLayer.addChild(this.objectRenderer.container)
@@ -75,6 +82,11 @@ export class PixiGameRenderer {
 
     if (event.type === 'interactionApplied') {
       this.effectRenderer.playInteraction(event.interaction)
+      const animation = chooseOneShotAnimation(
+        event.interaction,
+        this.currentViewModel?.stage
+      )
+      if (animation) this.petRenderer.playOnce(animation)
     }
 
     if (event.type === 'hatched') {

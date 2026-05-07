@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "tamakey",
+  "account_id": "5e6933b95cb7ab7f7c21f61b5494e0b8",
+  "compatibility_date": "2026-05-07",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  },
+  "vars": {
+    "ENVIRONMENT": "production",
+    "API_VERSION": "v1.1"
+  }
+}

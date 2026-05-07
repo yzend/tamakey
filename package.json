@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "deploy": "wrangler pages deploy dist --project-name=tamakey",
-    "pages:dev": "pnpm build && wrangler pages dev dist",
-    "pages:deploy": "pnpm build && wrangler pages deploy dist --project-name=tamakey",
+    "deploy": "wrangler deploy",
+    "workers:dev": "pnpm build && wrangler dev",
+    "workers:deploy": "pnpm build && wrangler deploy",
+    "assets:generate": "python3 scripts/generate-reference-monkey-assets.py",
     "lint": "eslint . --ignore-pattern 'dev-dist/**' --ignore-pattern 'dist/**' --ignore-pattern 'test-results/**'",
     "preview": "vite preview",
     "test": "vitest run",

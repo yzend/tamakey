@@ -235,7 +235,7 @@
 .game-surface {
   position: relative;
   display: grid;
-  inline-size: min(100%, 560px);
+  inline-size: min(100%, 875px);
   gap: var(--space-3);
   padding: var(--space-4);
   border: calc(var(--pixel-border) + 1px) solid var(--color-border);
@@ -342,8 +342,7 @@
 }
 
 .pixel-screen {
-  inline-size: min(100%, 470px);
-  aspect-ratio: 160 / 144;
+  inline-size: min(100%, 803px);
   padding: var(--space-2);
   border: calc(var(--pixel-border) + 1px) solid var(--color-border);
   border-radius: var(--radius-sm);
@@ -359,11 +358,12 @@
 .pixel-screen canvas {
   display: block;
   inline-size: 100%;
-  block-size: 100%;
+  block-size: auto;
+  aspect-ratio: 785 / 707;
 }
 
 .pixel-screen canvas {
-  image-rendering: pixelated;
+  image-rendering: auto;
 }
 
 .pixel-icon {
@@ -1100,7 +1100,7 @@
   }
 
   .pixel-screen {
-    inline-size: min(100%, 340px);
+    inline-size: min(100%, 785px);
     padding: var(--space-1);
   }
 

@@ -1,8 +1,0 @@
-name = "tamakey"
-account_id = "5e6933b95cb7ab7f7c21f61b5494e0b8"
-compatibility_date = "2026-05-07"
-pages_build_output_dir = "dist"
-
-[vars]
-ENVIRONMENT = "production"
-API_VERSION = "v1.1"
